@@ -8,18 +8,19 @@ import (
 
 // E164 follows the E.164 standard
 // When calling a number, country code should be prefixed
-//
+// When domestic calling a number, truck code will be prefixed
 type E164 struct {
-	CountryCode    string // 64
+	CountryCode    string // 64 also called calling code
 	TruckPrefixes  string // 0
-	AreaCode       string // 21
-	PhoneNumber    string // 1376664
+	AreaCode       string // 2
+	PhoneNumber    string // 13489543
 	DailingNumber  string // CountryCode + AreaCode + PhoneNumber
 	DomesticNumber string // TruckPrefixes + PhoneNumber
 	Alpha2         string // NZ
 	Alpha3         string // NZL
 }
 
+// ParsePhoneNumber parses a phone number with calling code
 func ParsePhoneNumber(phoneNumber string) (E164, error) {
 	var entity E164
 	if phoneNumber == "" {
@@ -39,7 +40,7 @@ func ParsePhoneNumber(phoneNumber string) (E164, error) {
 			entity.Alpha2 = v.Alpha2
 			entity.Alpha3 = v.Alpha3
 			tmpPhoneNumber = strings.Replace(tmpPhoneNumber, v.CountryCode, "", 1)
-			truckCode := filterTruckCode(entity.Alpha2)
+			truckCode := getTruckCode(entity.Alpha2)
 			entity.TruckPrefixes = truckCode
 			tmpPhoneNumber = tmpPhoneNumber[len(truckCode):]
 			current = v
@@ -58,17 +59,23 @@ func ParsePhoneNumber(phoneNumber string) (E164, error) {
 				break
 			}
 		}
+	} else {
+		return E164{}, errors.New("No country code found")
 	}
 	return entity, nil
 }
 
-func filterTruckCode(country string) string {
+func getTruckCode(country string) string {
 	truckCode := ""
 	switch country {
 	case "MX":
 		truckCode = "01"
 	case "AZ", "RU", "KZ", "TC", "UZ", "BY":
 		truckCode = "8"
+	case "NZ":
+		truckCode = "0"
+	default:
+
 	}
 	return truckCode
 }
