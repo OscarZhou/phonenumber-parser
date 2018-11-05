@@ -15,7 +15,7 @@ type E164 struct {
 	AreaCode       string // 2
 	PhoneNumber    string // 13489543
 	DailingNumber  string // CountryCode + AreaCode + PhoneNumber
-	DomesticNumber string // TruckPrefixes + PhoneNumber
+	DomesticNumber string // TruckPrefixes +AreaCode + PhoneNumber
 	Alpha2         string // NZ
 	Alpha3         string // NZL
 }
@@ -40,9 +40,10 @@ func ParsePhoneNumber(phoneNumber string) (E164, error) {
 			entity.Alpha2 = v.Alpha2
 			entity.Alpha3 = v.Alpha3
 			tmpPhoneNumber = strings.Replace(tmpPhoneNumber, v.CountryCode, "", 1)
-			truckCode := getTruckCode(entity.Alpha2)
-			entity.TruckPrefixes = truckCode
-			tmpPhoneNumber = tmpPhoneNumber[len(truckCode):]
+			entity.TruckPrefixes = getTruckCode(entity.Alpha2)
+			if tmpPhoneNumber[0] == '0' {
+				tmpPhoneNumber = tmpPhoneNumber[len(entity.TruckPrefixes):]
+			}
 			current = v
 			break
 		}
@@ -55,7 +56,7 @@ func ParsePhoneNumber(phoneNumber string) (E164, error) {
 				tmpPhoneNumber = strings.Replace(tmpPhoneNumber, areaCode, "", 1)
 				entity.PhoneNumber = tmpPhoneNumber
 				entity.DailingNumber = entity.CountryCode + entity.AreaCode + entity.PhoneNumber
-				entity.DomesticNumber = entity.TruckPrefixes + entity.PhoneNumber
+				entity.DomesticNumber = entity.TruckPrefixes + entity.AreaCode + entity.PhoneNumber
 				break
 			}
 		}
